@@ -7,4 +7,5 @@ export class Champion {
   loadingImg = '';
   squareImg = '';
   idName = '';
+  square256Img? = '';
 }
