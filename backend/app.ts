@@ -51,6 +51,8 @@ const main = async (): Promise<void> => {
 
   const server = http.createServer(app);
   app.use('/cache', express.static(__dirname + '/../cache'));
+  app.use('/assets', express.static(__dirname + '/../assets'));
+
   const wsServer = new WebSocketServer(server, state);
   wsServer.startHeartbeat();
 
