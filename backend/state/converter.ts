@@ -39,7 +39,7 @@ const convertTeam = (kwargs: {
       splashCenteredImg: champion ? champion.splashCenteredImg : '',
       squareImg: champion ? champion.squareImg : '',
       square256Img: champion
-        ? '/assets/256x256/' + champion.name + '_256x256.png'
+        ? '/assets/256x256/' + champion.id + '_256x256.png'
         : '',
     };
 
