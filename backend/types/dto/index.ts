@@ -8,3 +8,4 @@ export * from './StateData';
 export * from './Team';
 export * from './Version';
 export * from './Config';
+export * from './Item';

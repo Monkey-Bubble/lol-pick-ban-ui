@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import cliProgress from 'cli-progress';
 
 import logger from '../../logging';
-import { Champion, Spell } from '../../types/dto';
+import { Champion, Spell, Item } from '../../types/dto';
 import State from '../../state';
 
 const log = logger('datadragon');
@@ -19,6 +19,7 @@ class DataDragon {
   };
   champions: Array<Champion> = [];
   summonerSpells: Array<Spell> = [];
+  items: { [key: string]: Item } = {};
   state: State;
 
   constructor(state: State) {
@@ -81,6 +82,14 @@ class DataDragon {
     );
     log.info(`Loaded ${this.summonerSpells.length} summoner spells`);
 
+    this.items = (
+      await needle(
+        'get',
+        `${this.state.data.meta.cdn}/${this.state.data.meta.version.item}/data/en_US/item.json`,
+        { json: true }
+      )
+    ).body.data;
+    log.info(`Loaded ${Object.keys(this.items).length} items`);
     // Download all champion images and spell images
     await this.checkLocalCache();
   }
@@ -140,12 +149,28 @@ class DataDragon {
     return spell;
   }
 
+  getItemById(id: number): Item | null {
+    if (id in this.items) return this.extendItemLocal(this.items[id]);
+    else return null;
+  }
+
+  extendItem(item: Item): Item {
+    item.icon = `${this.state.getVersionCDN()}/img/item/${item.image.full}`;
+    return item;
+  }
+
+  extendItemLocal(item: Item): Item {
+    item.icon = `/cache/${this.versions.n.item}/item/${item.icon}`;
+    return item;
+  }
+
   async checkLocalCache(): Promise<void> {
     const patch = this.state.data.meta.version.champion;
 
     const patchFolder = `./cache/${patch}`;
     const patchFolderChampion = patchFolder + '/champion';
     const patchFolderSpell = patchFolder + '/spell';
+    const patchFolderItem = patchFolder + '/item';
 
     if (fs.existsSync(patchFolder)) {
       log.info(
@@ -161,6 +186,7 @@ class DataDragon {
     fs.mkdirSync(patchFolder);
     fs.mkdirSync(patchFolderChampion);
     fs.mkdirSync(patchFolderSpell);
+    fs.mkdirSync(patchFolderItem);
 
     log.info(
       'Download process started. This could take a while. Downloading to: ' +
@@ -221,6 +247,16 @@ class DataDragon {
         downloadFile(spell.icon, `${patchFolderSpell}/${spell.id}.png`)
       );
     });
+
+    for (const item of Object.values(this.items)) {
+      const extendedItem = this.extendItem(item);
+      tasks.push(
+        downloadFile(
+          extendedItem.icon,
+          `${patchFolderItem}/${extendedItem.image.full}`
+        )
+      );
+    }
 
     log.info(`Downloading ${tasks.length} assets from datadragon!`);
     const batchSize = 10;
