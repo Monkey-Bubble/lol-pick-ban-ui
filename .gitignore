@@ -4,3 +4,4 @@ dist/
 backend-build/
 cache/
 256x256/
+.env

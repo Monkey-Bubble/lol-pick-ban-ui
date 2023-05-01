@@ -2,6 +2,9 @@ import needle from 'needle';
 import * as fs from 'fs';
 import cliProgress from 'cli-progress';
 
+import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config();
+
 import logger from '../../logging';
 import { Champion, Spell, Item } from '../../types/dto';
 import State from '../../state';
@@ -167,7 +170,7 @@ class DataDragon {
   async checkLocalCache(): Promise<void> {
     const patch = this.state.data.meta.version.champion;
 
-    const patchFolder = `./cache/${patch}`;
+    const patchFolder = process.env.ASSETS_PATH + `/cache/${patch}`;
     const patchFolderChampion = patchFolder + '/champion';
     const patchFolderSpell = patchFolder + '/spell';
     const patchFolderItem = patchFolder + '/item';
@@ -179,15 +182,14 @@ class DataDragon {
       return;
     }
     try {
-      fs.mkdirSync('./cache');
+      fs.mkdirSync(process.env.ASSETS_PATH + '/cache');
     } catch (e) {
       log.debug('Directory ./cache exists already or cannot be created.');
     }
-    fs.mkdirSync(patchFolder);
-    fs.mkdirSync(patchFolderChampion);
-    fs.mkdirSync(patchFolderSpell);
-    fs.mkdirSync(patchFolderItem);
-
+    await fs.mkdirSync(patchFolder);
+    await fs.mkdirSync(patchFolderChampion);
+    await fs.mkdirSync(patchFolderSpell);
+    await fs.mkdirSync(patchFolderItem);
     log.info(
       'Download process started. This could take a while. Downloading to: ' +
         patchFolder
